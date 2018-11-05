@@ -1,0 +1,39 @@
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{ user `aws_access_key` }}",
+      "secret_key": "{{ user `aws_secret_key` }}",
+      "region": "us-east-1",
+      "instance_type": "t2.micro",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "*Windows_Server-2016-English-Full-Base*",
+          "root-device-type": "ebs"
+        },
+        "most_recent": true,
+        "owners": "amazon"
+      },
+      "ami_name": "packer-demo-{{timestamp}}",
+      "user_data_file": "windows-userdata.txt",
+      "communicator": "winrm",
+      "winrm_username": "Administrator",
+      "winrm_password": "SuperS3cr3t!"
+    }
+  ],
+  "provisioners": [
+  {
+      "type":  "ansible",
+      "playbook_file": "./win-playbook.yml",
+      "extra_arguments": [
+        "--connection", "packer", "-vvv",
+        "--extra-vars", "ansible_shell_type=powershell ansible_shell_executable=None ansible__user=Administrator"
+      ]
+  }]
+}
+
